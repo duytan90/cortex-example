@@ -8,7 +8,7 @@ namespace CortexAccess
 {
     public class StreamDataEventArgs
     {
-        public StreamDataEventArgs(int  streamType, JObject data, int requestType = 0)
+        public StreamDataEventArgs(int streamType, JObject data, int requestType = 0)
         {
             StreamType = streamType;
             RequestType = requestType;
@@ -94,7 +94,7 @@ namespace CortexAccess
 
             string requestID = streamType.ToString() + requestType.ToString() + _nextRequestId.ToString();
             ++_nextRequestId;
-            if( _nextRequestId >=100000)
+            if (_nextRequestId >= 100000)
             {
                 _nextRequestId = 1; // reset _nextRequestID to avoid overrange Int32 for requestID
             }
@@ -102,7 +102,7 @@ namespace CortexAccess
         }
         public int SendTextMessage(JObject param, int streamType, string method, bool hasParam = true, int requestType = 0)
         {
-            if(!IsWSConnected)
+            if (!IsWSConnected)
             {
                 return -1;
             }
@@ -168,19 +168,19 @@ namespace CortexAccess
 
             JObject response = JObject.Parse(e.Message);
 
-            if(response["warning"] != null)
+            if (response["warning"] != null)
             {
                 JObject warning = (JObject)response["warning"];
                 string messageWarning = (string)warning["warning"];
                 int code = -1;
-                if(warning["code"] != null)
+                if (warning["code"] != null)
                     code = (int)warning["code"];
 
                 Console.WriteLine("Received: " + messageWarning);
 
                 OnMessageError(this, new MessageErrorEventArgs(code, messageWarning));
             }
-            if(response["sid"] != null)
+            if (response["sid"] != null)
             {
                 string sid = (string)response["sid"];
                 if (response["mot"] != null)
@@ -191,7 +191,7 @@ namespace CortexAccess
                 {
                     OnStreamDataReceived(this, new StreamDataEventArgs((int)StreamID.EEG_STREAM, response));
                 }
-                else if(response["dev"] != null)
+                else if (response["dev"] != null)
                 {
                     OnStreamDataReceived(this, new StreamDataEventArgs((int)StreamID.DEVICE_STREAM, response));
                 }
@@ -207,6 +207,10 @@ namespace CortexAccess
                 {
                     OnStreamDataReceived(this, new StreamDataEventArgs((int)StreamID.FACIAL_EXP_DATA_STREAM, response));
                 }
+                else if (response["pow"] != null)
+                {
+                    OnStreamDataReceived(this, new StreamDataEventArgs((int)StreamID.BAND_POWER_STREAM, response));
+                }
                 else if (response["sys"] != null)
                 {
                     OnStreamDataReceived(this, new StreamDataEventArgs((int)StreamID.SYS_STREAM, response));
@@ -215,9 +219,9 @@ namespace CortexAccess
                 {
                     Console.WriteLine("Can not detect stream type");
                 }
-               
+
             }
-            else if(response["error"] != null)
+            else if (response["error"] != null)
             {
                 JObject error = (JObject)response["error"];
                 int code = (int)error["code"];
@@ -256,6 +260,6 @@ namespace CortexAccess
                 Console.WriteLine(e.Exception.InnerException.GetType());
             }
         }
-       
+
     }
 }

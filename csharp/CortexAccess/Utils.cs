@@ -21,7 +21,8 @@ namespace CortexAccess
         FACIAL_EXP_DATA_STREAM,
         TRAINING_STREAM,
         MENTAL_CMD_TRAIN_STREAM,
-        FACIAL_EXP_TRAIN_STREAM
+        FACIAL_EXP_TRAIN_STREAM,
+        BAND_POWER_STREAM
     }
 
     public enum TrainingControl : int

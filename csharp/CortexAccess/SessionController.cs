@@ -31,7 +31,7 @@ namespace CortexAccess
 
         private string _sessionID;
         //private Record _currentRecord;
-        private string  _nextStatus;
+        private string _nextStatus;
         private bool _isCreateSession;
         private bool _isRecording;
         private string _recordID;
@@ -46,6 +46,7 @@ namespace CortexAccess
         public event EventHandler<ArrayList> OnSubcribeMotionOK;
         public event EventHandler<ArrayList> OnSubcribeDevOK;
         public event EventHandler<ArrayList> OnSubcribeMetOK;
+        public event EventHandler<ArrayList> OnSubcribePowOK;
 
         // Constructor
         // Constructor
@@ -196,7 +197,7 @@ namespace CortexAccess
         // Update Session
         // start Record
         // Stop Record
-        public void UpdateSession(string token, string recordingName = "", string recordingNote= "", string recordingSubject="")
+        public void UpdateSession(string token, string recordingName = "", string recordingNote = "", string recordingSubject = "")
         {
             JObject param = new JObject(
                     new JProperty("_auth", token),
@@ -227,7 +228,7 @@ namespace CortexAccess
             JObject param = new JObject(
                     new JProperty("_auth", token));
 
-            if(!string.IsNullOrEmpty(queryCondition))
+            if (!string.IsNullOrEmpty(queryCondition))
             {
                 param.Add("query", new JObject(new JProperty("status", queryCondition)));
             }
@@ -277,7 +278,7 @@ namespace CortexAccess
                     new JProperty("_auth", token),
                     new JProperty("session", SessionID),
                     new JProperty("streams", jStreamArr));
-                    //new JProperty("replay", isReplay));
+            //new JProperty("replay", isReplay));
 
             if (isSubcribe)
             {
@@ -294,7 +295,7 @@ namespace CortexAccess
             JObject param = new JObject(
                     new JProperty("_auth", token),
                     new JProperty("session", sessionId),
-                    new JProperty("streams", new JArray("eeg", "mot", "dev", "met")),
+                    new JProperty("streams", new JArray("eeg", "mot", "dev", "met", "pow")),
                     new JProperty("replay", isReplay));
 
             if (isSubcribe)
@@ -344,7 +345,7 @@ namespace CortexAccess
                         {
                             sessionLists.Add(new Session(item));
                         }
-                        if(sessionLists.Count > 0)
+                        if (sessionLists.Count > 0)
                         {
                             SessionLists = sessionLists.ToList();
                         }
@@ -361,9 +362,22 @@ namespace CortexAccess
                                 {
                                     eegChannelLists.Add((string)chanItem);
                                 }
-                                if(eegChannelLists.Count > 0)
+                                if (eegChannelLists.Count > 0)
                                 {
                                     OnSubcribeEEGOK(this, eegChannelLists);
+                                }
+                            }
+                            else if (item["pow"] != null) // Band power
+                            {
+                                ArrayList powerChannelLists = new ArrayList();
+                                JArray cols = (JArray)item["pow"]["cols"];
+                                foreach (var chanItem in cols)
+                                {
+                                    powerChannelLists.Add((string)chanItem);
+                                }
+                                if (powerChannelLists.Count > 0)
+                                {
+                                    OnSubcribePowOK(this, powerChannelLists);
                                 }
                             }
                             else if (item["mot"] != null) // Motion
@@ -412,7 +426,7 @@ namespace CortexAccess
                         break;
                     case (int)SessionReqType.UNSUBCRIBE_DATA:
                         JArray jResultUnSubcribe = (JArray)result;
-                        foreach(var item in jResultUnSubcribe)
+                        foreach (var item in jResultUnSubcribe)
                         {
                             string message = (string)item["message"];
                             Console.WriteLine(message);
@@ -434,13 +448,13 @@ namespace CortexAccess
                         JArray markers = (JArray)result["markers"];
                         Console.WriteLine("\nInject MARKERS successfully");
                         Console.WriteLine("\n##########List MARKERS#######");
-                        foreach(var item in markers)
+                        foreach (var item in markers)
                         {
                             int code = (int)item["code"];
                             string label = (string)item["label"];
                             string port = (string)item["port"];
                             JArray jEvent = (JArray)item["events"];
-                            foreach(var evtItem in jEvent)
+                            foreach (var evtItem in jEvent)
                             {
                                 string time = (string)evtItem[0];
                                 string value = (string)evtItem[1]; // start and stop marker have value reversered (Eg: 1 vs -1)

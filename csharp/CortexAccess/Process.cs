@@ -25,6 +25,7 @@ namespace CortexAccess
         public event EventHandler<ArrayList> OnEEGDataReceived;
         public event EventHandler<ArrayList> OnDevDataReceived;
         public event EventHandler<ArrayList> OnPerfDataReceived;
+        public event EventHandler<ArrayList> OnPowDataReceived;
 
         // Constructor
         public Process()
@@ -53,7 +54,7 @@ namespace CortexAccess
             _mapControllers.Add((int)StreamID.TRAINING_STREAM, TrainingCtr);
             _wSC.Open();
 
-        } 
+        }
 
         // Properties
         public AccessController AccessCtr
@@ -154,7 +155,7 @@ namespace CortexAccess
         }
 
         // Get current userlogin
-        public string  GetUserLogin()
+        public string GetUserLogin()
         {
             return AccessCtr.CurrentUserLogin;
         }
@@ -263,7 +264,7 @@ namespace CortexAccess
         // Start Record
         public void StartRecord(string recordName, string recordSubject, string recordNote)
         {
-            if(SessionCtr.IsCreateSession)
+            if (SessionCtr.IsCreateSession)
             {
                 SessionCtr.NextStatus = "startRecord";
                 SessionCtr.RecordingName = recordName;
@@ -316,9 +317,9 @@ namespace CortexAccess
         // Check profileLists existed
         public bool IsProfilesExisted(string profileName)
         {
-            if(TrainingCtr.ProfileLists.Count > 0)
+            if (TrainingCtr.ProfileLists.Count > 0)
             {
-                if(TrainingCtr.ProfileLists.Contains(profileName))
+                if (TrainingCtr.ProfileLists.Contains(profileName))
                 {
                     return true;
                 }
@@ -336,7 +337,7 @@ namespace CortexAccess
         public void CreateProfile(string profileName)
         {
             TrainingCtr.CurrentProfileName = profileName;
-            TrainingCtr.CreateProfile(GetAccessToken(), GetSelectedHeadsetId() , profileName);
+            TrainingCtr.CreateProfile(GetAccessToken(), GetSelectedHeadsetId(), profileName);
         }
         // Save a profile
         public void SaveProfile()
@@ -435,13 +436,26 @@ namespace CortexAccess
                     Console.WriteLine("Motion data received");
                     ArrayList motionData = new ArrayList();
                     JArray jMotData = (JArray)evt.Data["mot"];
-                    foreach(var item in jMotData)
+                    foreach (var item in jMotData)
                     {
                         motionData.Add((float)item);
                     }
                     if (motionData.Count > 0)
                     {
                         OnMotionDataReceived(this, new ArrayList(motionData));
+                    }
+                    break;
+                case (int)StreamID.BAND_POWER_STREAM:
+                    Console.WriteLine("Band power data received");
+                    ArrayList powData = new ArrayList();
+                    JArray jPowData = (JArray)evt.Data["pow"];
+                    foreach (var item in jPowData)
+                    {
+                        powData.Add((float)item);
+                    }
+                    if (powData.Count > 0)
+                    {
+                        OnPowDataReceived(this, new ArrayList(powData));
                     }
                     break;
                 case (int)StreamID.EEG_STREAM:
@@ -453,7 +467,7 @@ namespace CortexAccess
                     {
                         eegData.Add((float)item);
                     }
-                    if(eegData.Count > 0)
+                    if (eegData.Count > 0)
                     {
                         OnEEGDataReceived(this, new ArrayList(eegData));
                     }
@@ -504,7 +518,7 @@ namespace CortexAccess
                 if (!AccessCtr.IsLogin)
                     AccessCtr.QueryUserLogin();
                 // Query Headset
-                if(!HeadsetCtr.IsConnected)
+                if (!HeadsetCtr.IsConnected)
                     HeadsetCtr.QueryHeadsets();
             }
             else
@@ -556,7 +570,7 @@ namespace CortexAccess
             }
             // Clear session
             SessionCtr.ClearSessionControllerData();
-            
+
 
         }
 
